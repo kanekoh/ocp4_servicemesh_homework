@@ -1,0 +1,27 @@
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: productpage-virtualservice
+spec:
+  hosts:
+  - productpage.{{ bookinfo_project }}.apps.{{ subdomain }}
+  gateways:
+  - productpage-gateway.{{ istio_system_project }}.svc.cluster.local
+  http:
+  - match:
+    - uri:
+        exact: /productpage
+    - uri:
+        prefix: /static
+    - uri:
+        exact: /login
+    - uri:
+        exact: /logout
+    - uri:
+        prefix: /api/v1/products
+    route:
+    - destination:
+        port:
+          number: 9080
+        host: productpage.{{ bookinfo_project }}.svc.cluster.local

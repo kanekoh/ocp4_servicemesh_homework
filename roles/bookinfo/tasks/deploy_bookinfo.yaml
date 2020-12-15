@@ -1,0 +1,21 @@
+---
+- name: check if the project exists
+  shell: |
+    oc get project {{ bookinfo_project }}
+  register: result
+  failed_when: false
+
+- name: create bookinfo project
+  shell: |
+    oc new-project {{ bookinfo_project }}
+  when: result.rc == 1
+
+- name: deploy bookinfo
+  shell: |
+    oc apply -n bookinfo -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.0/samples/bookinfo/platform/kube/bookinfo.yaml
+
+- name: create gateway
+  shell:
+    oc apply -n bookinfo -f https://raw.githubusercontent.com/Maistra/istio/maistra-2.0/samples/bookinfo/networking/bookinfo-gateway.yaml
+  when: bookinfo_debug
+

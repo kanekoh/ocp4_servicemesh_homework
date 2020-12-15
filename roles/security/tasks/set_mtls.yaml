@@ -1,0 +1,30 @@
+---
+- name: Generate Policy Yaml Files
+  template:
+    src: policy.yaml.j2
+    dest: /tmp/policy-{{ item }}.yaml
+  with_items:
+  - details
+  - productpage
+  - ratings
+  - reviews
+
+- name: Generate Destination Rule Yaml Files
+  template:
+    src: destinationrule.yaml.j2
+    dest: /tmp/destination-{{ item }}.yaml
+  with_items:
+  - details
+  - productpage
+  - ratings
+  - reviews
+
+- name: Deploy Policy
+  shell: |
+    oc apply -f /tmp/policy-{{ item }}.yaml -n {{ bookinfo_project }}
+    oc apply -f /tmp/destination-{{ item }}.yaml -n {{ bookinfo_project }}
+  with_items:
+  - details
+  - productpage
+  - ratings
+  - reviews

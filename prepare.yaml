@@ -1,0 +1,6 @@
+---
+- hosts: bastion
+  tasks:
+  - import_role:
+      name: smcp
+      tasks_from: deploy_servicemesh

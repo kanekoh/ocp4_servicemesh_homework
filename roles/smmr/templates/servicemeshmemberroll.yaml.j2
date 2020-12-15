@@ -1,0 +1,9 @@
+apiVersion: maistra.io/v1
+kind: ServiceMeshMemberRoll
+metadata:
+  namespace: bookretail-istio-system
+  name: default
+  labels: {}
+spec:
+  members:
+    - {{ bookinfo_project }}

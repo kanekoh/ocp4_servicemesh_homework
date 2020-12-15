@@ -1,0 +1,52 @@
+---
+- name: Generate Virtual Service
+  template:
+    src: virtualservice.yaml.j2
+    dest: /tmp/virtualservice.yaml
+
+- name: Deploy VirtualService
+  shell: |
+    #oc apply -f /tmp/virtualservice.yaml -n {{ istio_system_project }}
+    oc apply -f /tmp/virtualservice.yaml -n {{ bookinfo_project }}
+
+- name: Generate route for Gateway
+  template:
+    src: route.yaml.j2
+    dest: /tmp/route.yaml
+
+- name: Generate Cert Config
+  template:
+    src: cert.cfg.j2
+    dest: /tmp/cert.cfg
+
+- name: Generate certificate and private key
+  shell: |
+    openssl req -x509 -config /tmp/cert.cfg -extensions req_ext -nodes -days 730 -newkey rsa:2048 -sha256 -keyout /tmp/tls.key -out /tmp/tls.crt
+
+- name: Check if secret exists
+  shell: |
+    oc get secret istio-ingressgateway-certs -n {{ istio_system_project }}
+  register: result
+  failed_when: false
+
+- name: Create Secret
+  shell: |
+    oc create secret tls istio-ingressgateway-certs --cert /tmp/tls.crt --key /tmp/tls.key -n {{ istio_system_project  }}
+    oc patch deployment istio-ingressgateway -p '{"spec":{"template":{"metadata":{"annotations":{"kubectl.kubernetes.io/restartedAt": "'`date +%FT%T%z`'"}}}}}' -n {{ istio_system_project }}
+  when: result.rc == 1
+
+- name: Generate gateway
+  template:
+    src: gateway.yaml.j2
+    dest: /tmp/gateway.yaml
+
+- name: Create Gateway
+  shell: |
+    oc apply -f /tmp/gateway.yaml -n {{ istio_system_project }}
+    #oc apply -f /tmp/gateway.yaml -n {{ bookinfo_project }}
+
+
+- name: Deploy Route
+  shell: |
+    oc apply -f /tmp/route.yaml -n {{ istio_system_project }}
+    #oc apply -f /tmp/route.yaml -n {{ bookinfo_project }}

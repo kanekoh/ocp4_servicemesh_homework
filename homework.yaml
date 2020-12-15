@@ -1,0 +1,22 @@
+---
+- hosts: bastion
+  tasks:
+  - import_role:
+      name: bookinfo
+      tasks_from: deploy_bookinfo
+
+  - import_role:
+      name: smmr
+      tasks_from: set_servicememberroll
+
+  - import_role:
+      name: smmr
+      tasks_from: set_autoinjections
+
+  - import_role:
+      name: security
+      tasks_from: set_mtls
+
+  - import_role:
+      name: security
+      tasks_from: set_gateway

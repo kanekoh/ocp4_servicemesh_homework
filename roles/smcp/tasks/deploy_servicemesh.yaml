@@ -1,0 +1,20 @@
+---
+- name: Check if project exists
+  shell: |
+    oc get project {{ istio_system_project }}
+  failed_when: false
+  register: result
+
+- name: Create new project for istio control plane
+  shell: |
+    oc new-project {{ istio_system_project }}
+  when: result.rc == 1
+
+- name: Generate SMCP
+  template:
+    src: smcp.yaml.j2
+    dest: /tmp/smcp.yaml
+
+- name: deploy control plane
+  shell:
+    oc apply -f /tmp/smcp.yaml -n {{ istio_system_project }}

@@ -1,0 +1,19 @@
+---
+- name: Generate ServiceMeshMemberRoll file
+  template:
+    src: servicemeshmemberroll.yaml.j2
+    dest: /tmp/servicemeshmemberroll.yaml
+
+- name: Install ServiceMeshMemberRoll
+  shell: |
+    oc apply -f /tmp/servicemeshmemberroll.yaml 
+
+- name: Check labels exsiting
+  shell: oc get project bookinfo --show-labels | grep {{ item }}
+  register: result
+  until: result.rc == 0
+  retries: 300
+  delay: 1
+  with_items:
+  - 'maistra.io/member-of=bookretail-istio-system'
+  - 'kiali.io/member-of=bookretail-istio-system'

@@ -1,0 +1,25 @@
+---
+- name: set Autoinjections
+  shell: |
+    oc patch deployment {{ item }} --type='merge' -p '{"spec": {"template": {"metadata": {"annotations": {"sidecar.istio.io/inject": "true"}}}}}' -n {{ bookinfo_project  }}
+  with_items:
+  - details-v1
+  - productpage-v1
+  - ratings-v1
+  - reviews-v1
+  - reviews-v2
+  - reviews-v3
+
+- name: wait for all pods ready
+  shell: |
+    oc wait pod --all --for=condition=Ready -n {{ bookinfo_project }}
+
+- name: list all pods name
+  shell: |
+   oc get pod -o name -n {{ bookinfo_project }}
+  register: result
+
+- name: Check the istio-proxy is in the pods
+  shell: |
+    oc get {{ item }} -o jsonpath='{.spec.containers[*].name}' -n {{ bookinfo_project  }} | grep istio-proxy
+  with_items: "{{ result.stdout_lines }}"
